@@ -3,8 +3,25 @@ import Layout from "../components/Layout";
 
 import {useFormik} from "formik"
 import * as Yup from 'yup';
+import { useMutation, gql } from "@apollo/client";
+
+const NUEVA_CUENTA = gql`
+    mutation nuevoUsuario($input: UsuarioInput) {
+        nuevoUsuario(input: $input){
+        id
+        nombre
+        apellido
+        email
+        }
+    }
+  
+`;
 
 const NuevaCuenta = ()=>{
+
+    // Mutation para crear usuarios
+    const [nuevoUsuario] = useMutation(NUEVA_CUENTA);
+
     // Validacion del form
     const formik = useFormik({
         // Es como el state
@@ -21,9 +38,24 @@ const NuevaCuenta = ()=>{
             password: Yup.string().required('El password es obligatorio').min(6, 'El password debe tener un mínimo de 6 caracteres'),
         }),
         // Le agrega el evento al formulario como tal
-        onSubmit: valores =>{
+        onSubmit: async valores =>{
             console.log("Enviando");
             console.log(valores);
+            const {nombre, apellido, email, password} = valores;
+            try {
+                await nuevoUsuario({
+                    variables: {
+                        input: {
+                            nombre: nombre,
+                            apellido:apellido,
+                            email: email, 
+                            password: password
+                        }
+                    }
+                })
+            } catch (error) {
+                console.log(error);
+            }
         }
     });
     return (
